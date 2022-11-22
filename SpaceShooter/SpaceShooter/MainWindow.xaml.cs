@@ -34,7 +34,7 @@ namespace SpaceShooter
         int enemySpeed = 10;
 
         int playerSpeed = 10;
-        
+
         int limit = 50;
         int score = 0;
         int damage = 0;
@@ -54,14 +54,14 @@ namespace SpaceShooter
             gameTimer.Tick += GameLoop;
             gameTimer.Start();
 
-            MyCanvas.Focus();
+            GameScreen.Focus();
 
             ImageBrush bg = new ImageBrush();
             bg.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/purple.png"));
             bg.TileMode = TileMode.Tile;
             bg.Viewport = new Rect(0, 0, 0.15, 0.15);
             bg.ViewportUnits = BrushMappingMode.RelativeToBoundingBox;
-            MyCanvas.Background = bg;
+            GameScreen.Background = bg;
 
             ImageBrush playerImage = new ImageBrush();
             playerImage.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/player.png"));
@@ -77,7 +77,7 @@ namespace SpaceShooter
             lbl_ScoreText.Content = "Score: " + score;
             lbl_DamageText.Content = "Damage: " + damage;
 
-            if(enemyCounter < 0)
+            if (enemyCounter < 0)
             {
                 MakeEnemy();
                 enemyCounter = limit;
@@ -94,7 +94,7 @@ namespace SpaceShooter
                 Canvas.SetLeft(Player, Canvas.GetLeft(Player) + playerSpeed);
             }
 
-            foreach(Rectangle r in MyCanvas.Children.OfType<Rectangle>())
+            foreach (Rectangle r in GameScreen.Children.OfType<Rectangle>())
             {
                 if ((string)r.Tag == "bullet")
                 {
@@ -107,11 +107,11 @@ namespace SpaceShooter
                         itemRemover.Add(r);
                     }
 
-                    foreach(Rectangle r1 in MyCanvas.Children.OfType<Rectangle>())
+                    foreach (Rectangle r1 in GameScreen.Children.OfType<Rectangle>())
                     {
-                        if((string)r1.Tag == "enemy")
+                        if ((string)r1.Tag == "enemy")
                         {
-                            Rect enemyHit = new Rect(Canvas.GetLeft(r1), Canvas.GetTop(r1) + r1.Height/4, r1.Width, r1.Height - r1.Height/2);
+                            Rect enemyHit = new Rect(Canvas.GetLeft(r1), Canvas.GetTop(r1) + r1.Height / 4, r1.Width, r1.Height - r1.Height / 2);
 
                             if (bulletHitBox.IntersectsWith(enemyHit))
                             {
@@ -147,20 +147,20 @@ namespace SpaceShooter
                 }
             }
 
-            foreach(Rectangle r in itemRemover)
+            foreach (Rectangle r in itemRemover)
             {
-                MyCanvas.Children.Remove(r);
+                GameScreen.Children.Remove(r);
             }
             itemRemover.Clear();
         }
 
         private void OnKeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Left)
+            if (e.Key == Key.Left)
             {
                 moveLeft = true;
             }
-            if(e.Key == Key.Right)
+            if (e.Key == Key.Right)
             {
                 moveRight = true;
             }
@@ -178,7 +178,12 @@ namespace SpaceShooter
                 Canvas.SetLeft(newBullet, Canvas.GetLeft(Player) + Player.Width / 2 - newBullet.Width / 2);
                 Canvas.SetTop(newBullet, Canvas.GetTop(Player) - newBullet.Height);
 
-                MyCanvas.Children.Add(newBullet);
+                GameScreen.Children.Add(newBullet);
+            }
+
+            if (e.Key == Key.Escape || e.Key == Key.P)
+            {
+                TogglePause();
             }
         }
 
@@ -193,7 +198,28 @@ namespace SpaceShooter
                 moveRight = false;
             }
 
-            
+
+        }
+
+        private void OnPauseButtonClick(object sender, RoutedEventArgs e)
+        {
+            TogglePause();
+        }
+
+        private void TogglePause()
+        {
+            switch (gameTimer.IsEnabled)
+            {
+                case true:
+                    gameTimer.Stop();
+                    break;
+                case false:
+                    gameTimer.Start();
+                    break;
+                default:
+                    Console.WriteLine("Cosmic bit flip...");
+                    break;
+            }
         }
 
         private void MakeEnemy()
@@ -215,7 +241,7 @@ namespace SpaceShooter
 
             Canvas.SetLeft(newEnemy, rand.Next(30, 430));
             Canvas.SetTop(newEnemy, -100);
-            MyCanvas.Children.Add(newEnemy);
+            GameScreen.Children.Add(newEnemy);
         }
     }
 }
