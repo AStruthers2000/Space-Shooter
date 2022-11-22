@@ -43,11 +43,14 @@ namespace SpaceShooter
 
         Rect playerHitBox;
 
+        int targetFPS = 60;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            gameTimer.Interval = TimeSpan.FromMilliseconds(20);
+            //frequency = 1/period -> period = 1/frequency
+            gameTimer.Interval = TimeSpan.FromSeconds(1.0 / targetFPS);
             gameTimer.Tick += GameLoop;
             gameTimer.Start();
 
@@ -91,6 +94,64 @@ namespace SpaceShooter
                 Canvas.SetLeft(Player, Canvas.GetLeft(Player) + playerSpeed);
             }
 
+            foreach(Rectangle r in MyCanvas.Children.OfType<Rectangle>())
+            {
+                if ((string)r.Tag == "bullet")
+                {
+                    Canvas.SetTop(r, Canvas.GetTop(r) - 20);
+
+                    Rect bulletHitBox = new Rect(Canvas.GetLeft(r), Canvas.GetTop(r), r.Width, r.Height);
+
+                    if (Canvas.GetTop(r) + r.Width < 0)
+                    {
+                        itemRemover.Add(r);
+                    }
+
+                    foreach(Rectangle r1 in MyCanvas.Children.OfType<Rectangle>())
+                    {
+                        if((string)r1.Tag == "enemy")
+                        {
+                            Rect enemyHit = new Rect(Canvas.GetLeft(r1), Canvas.GetTop(r1) + r1.Height/4, r1.Width, r1.Height - r1.Height/2);
+
+                            if (bulletHitBox.IntersectsWith(enemyHit))
+                            {
+                                itemRemover.Add(r);
+                                itemRemover.Add(r1);
+
+                                score++;
+                            }
+                        }
+                    }
+                }
+
+                if ((string)r.Tag == "enemy")
+                {
+                    Canvas.SetTop(r, Canvas.GetTop(r) + enemySpeed);
+
+                    //if the enemy is at twice the height of the screen, remove them
+                    if (Canvas.GetTop(r) > Application.Current.MainWindow.Height + edgePadding)
+                    {
+                        itemRemover.Add(r);
+
+                        //if you don't shoot the enemy, and it makes it to your side, you take damage
+                        damage += 10;
+                    }
+
+                    Rect enemyHitBox = new Rect(Canvas.GetLeft(r), Canvas.GetTop(r), r.Width, r.Height);
+
+                    if (playerHitBox.IntersectsWith(enemyHitBox))
+                    {
+                        itemRemover.Add(r);
+                        damage += 5;
+                    }
+                }
+            }
+
+            foreach(Rectangle r in itemRemover)
+            {
+                MyCanvas.Children.Remove(r);
+            }
+            itemRemover.Clear();
         }
 
         private void OnKeyDown(object sender, KeyEventArgs e)
