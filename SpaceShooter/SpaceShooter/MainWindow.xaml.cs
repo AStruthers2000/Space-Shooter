@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,12 +31,19 @@ namespace SpaceShooter
         Random rand = new Random();
 
         int enemySpriteCounter = 0;
-        int enemyCounter = 100;
-        int enemySpeed = 10;
 
-        int playerSpeed = 10;
+        //enemyCounter and limit are the seconds between spawns
+        //enemyCounter should start higher than limit so that the player has a few more seconds before game starts
+        double enemyCounter = 10;
+        int limit = 5;
 
-        int limit = 50;
+        //scalar multiplier to control how fast enemies spawn. a higher multiplier means spawning faster
+        int enemySpawnRate = 2;
+
+        int enemySpeed = 250;
+        int playerSpeed = 300;
+        int bulletSpeed = 600;
+
         int score = 0;
         int damage = 0;
 
@@ -43,7 +51,12 @@ namespace SpaceShooter
 
         Rect playerHitBox;
 
-        int targetFPS = 60;
+        int targetFPS = 144;
+
+        Stopwatch timeManager = Stopwatch.StartNew();
+        float deltaTime = 0.0f;
+
+        List<ImageBrush> enemySprites = new List<ImageBrush>();
 
         public MainWindow()
         {
@@ -51,11 +64,14 @@ namespace SpaceShooter
 
             //frequency = 1/period -> period = 1/frequency
             gameTimer.Interval = TimeSpan.FromSeconds(1.0 / targetFPS);
+
+            //assigning the gameTimer Tick event call to custom function GameLoop 
             gameTimer.Tick += GameLoop;
             gameTimer.Start();
 
             GameScreen.Focus();
 
+            //loading and setting background image
             ImageBrush bg = new ImageBrush();
             bg.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/purple.png"));
             bg.TileMode = TileMode.Tile;
@@ -63,19 +79,39 @@ namespace SpaceShooter
             bg.ViewportUnits = BrushMappingMode.RelativeToBoundingBox;
             GameScreen.Background = bg;
 
+            //loading player image
             ImageBrush playerImage = new ImageBrush();
             playerImage.ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/player.png"));
             Player.Fill = playerImage;
+
+            //load all enemy sprites in initalization
+            for(int i = 1; i <= 5; i++)
+            {
+                ImageBrush temp = new ImageBrush();
+
+                string uri = string.Format("pack://application:,,,/Assets/{0}.png", i);
+                temp.ImageSource = new BitmapImage(new Uri(uri));
+                enemySprites.Add(temp);
+            }
+
+            //initializing labels
+            lbl_ScoreText.Content = "Score: " + score;
+            lbl_DamageText.Content = "Damage: " + damage;
         }
 
         private void GameLoop(object sender, EventArgs e)
         {
+            //calculating deltaTime
+            timeManager.Stop();
+            deltaTime = timeManager.ElapsedMilliseconds / 1000.0f;
+            timeManager.Restart();
+
             playerHitBox = new Rect(Canvas.GetLeft(Player), Canvas.GetTop(Player), Player.Width, Player.Height);
 
-            enemyCounter -= 1;
+            enemyCounter -= enemySpawnRate * deltaTime;
 
-            lbl_ScoreText.Content = "Score: " + score;
-            lbl_DamageText.Content = "Damage: " + damage;
+            
+            
 
             if (enemyCounter < 0)
             {
@@ -85,20 +121,20 @@ namespace SpaceShooter
 
             if (moveLeft && playerHitBox.X > 0 + edgePadding)
             {
-                Canvas.SetLeft(Player, Canvas.GetLeft(Player) - playerSpeed);
+                Canvas.SetLeft(Player, Canvas.GetLeft(Player) - playerSpeed * deltaTime);
             }
 
             //for some reason, frame is always 17 pixels wider than specified
             if (moveRight && playerHitBox.X + playerHitBox.Width < Application.Current.MainWindow.Width - 17 - edgePadding)
             {
-                Canvas.SetLeft(Player, Canvas.GetLeft(Player) + playerSpeed);
+                Canvas.SetLeft(Player, Canvas.GetLeft(Player) + playerSpeed * deltaTime);
             }
 
             foreach (Rectangle r in GameScreen.Children.OfType<Rectangle>())
             {
                 if ((string)r.Tag == "bullet")
                 {
-                    Canvas.SetTop(r, Canvas.GetTop(r) - 20);
+                    Canvas.SetTop(r, Canvas.GetTop(r) - bulletSpeed * deltaTime);
 
                     Rect bulletHitBox = new Rect(Canvas.GetLeft(r), Canvas.GetTop(r), r.Width, r.Height);
 
@@ -119,6 +155,7 @@ namespace SpaceShooter
                                 itemRemover.Add(r1);
 
                                 score++;
+                                lbl_ScoreText.Content = "Score: " + score;
                             }
                         }
                     }
@@ -126,7 +163,7 @@ namespace SpaceShooter
 
                 if ((string)r.Tag == "enemy")
                 {
-                    Canvas.SetTop(r, Canvas.GetTop(r) + enemySpeed);
+                    Canvas.SetTop(r, Canvas.GetTop(r) + enemySpeed * deltaTime);
 
                     //if the enemy is at twice the height of the screen, remove them
                     if (Canvas.GetTop(r) > Application.Current.MainWindow.Height + edgePadding)
@@ -135,6 +172,7 @@ namespace SpaceShooter
 
                         //if you don't shoot the enemy, and it makes it to your side, you take damage
                         damage += 10;
+                        lbl_DamageText.Content = "Damage: " + damage;
                     }
 
                     Rect enemyHitBox = new Rect(Canvas.GetLeft(r), Canvas.GetTop(r), r.Width, r.Height);
@@ -142,16 +180,22 @@ namespace SpaceShooter
                     if (playerHitBox.IntersectsWith(enemyHitBox))
                     {
                         itemRemover.Add(r);
+
+                        //if the enemy hits you, you take damage
                         damage += 5;
+                        lbl_DamageText.Content = "Damage: " + damage;
                     }
                 }
             }
 
-            foreach (Rectangle r in itemRemover)
+            if (itemRemover.Count > 0)
             {
-                GameScreen.Children.Remove(r);
+                foreach (Rectangle r in itemRemover)
+                {
+                    GameScreen.Children.Remove(r);
+                }
+                itemRemover.Clear();
             }
-            itemRemover.Clear();
         }
 
         private void OnKeyDown(object sender, KeyEventArgs e)
@@ -197,8 +241,6 @@ namespace SpaceShooter
             {
                 moveRight = false;
             }
-
-
         }
 
         private void OnPauseButtonClick(object sender, RoutedEventArgs e)
@@ -224,24 +266,25 @@ namespace SpaceShooter
 
         private void MakeEnemy()
         {
-            ImageBrush enemySprite = new ImageBrush();
             enemySpriteCounter = rand.Next(1, 5);
-
-            
-            string uri = string.Format("pack://application:,,,/Assets/{0}.png", enemySpriteCounter);
-            enemySprite.ImageSource = new BitmapImage(new Uri(uri));
 
             Rectangle newEnemy = new Rectangle
             {
                 Tag = "enemy",
                 Height = 50,
                 Width = 56,
-                Fill = enemySprite
+                Fill = enemySprites[enemySpriteCounter],
             };
 
             Canvas.SetLeft(newEnemy, rand.Next(30, 430));
             Canvas.SetTop(newEnemy, -100);
             GameScreen.Children.Add(newEnemy);
+
+            /*
+            watch.Stop();
+            Console.WriteLine("Spawned new enemy at time=" + watch.ElapsedMilliseconds / 1000.0);
+            watch.Restart();
+            */
         }
     }
 }

@@ -9,11 +9,15 @@
     <!--for some reason, frame is always 17 pixels wider than specified-->
     <Canvas Name="GameScreen" Focusable="True" Background="Black" KeyDown="OnKeyDown" KeyUp="OnKeyUp">
         <Rectangle Name="Player" Height="50" Width="60" Fill="Yellow" Canvas.Left="240" Canvas.Top="515" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-        <Rectangle Name="test" Height="10" Width="10" Fill="White" Canvas.Left="530" Canvas.Top="555"/>
-
-        <Label Name="lbl_ScoreText" Content="Score: 0" FontSize="18" FontWeight="Bold" Foreground="White" />
-        <Label Name="lbl_DamageText" Content="Score: 0" FontSize="18" FontWeight="Bold" Foreground="White" HorizontalAlignment="Left" Canvas.Left="425" VerticalAlignment="Center" />
         
+        <!--
+        <Rectangle Name="rightBound" Height="1000" Width="10" Fill="White" Canvas.Left="530" Canvas.Top="-45" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+        <Rectangle Name="leftBound" Height="1000" Width="10" Fill="White" Canvas.Top="-30" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        -->
+        
+        <Label Name="lbl_ScoreText" Content="Score: 99" FontSize="18" FontWeight="Bold" Foreground="White" HorizontalAlignment="Left" Canvas.Left="10" VerticalAlignment="Center" />
+        <Label Name="lbl_DamageText" Content="Damage: 99" FontSize="18" FontWeight="Bold" Foreground="White" HorizontalAlignment="Left" Canvas.Left="429" VerticalAlignment="Center" />
+
         <!-- 
         <Button Name="btn_Pause" Content="Pause" FontSize="18" FontWeight="Normal" Foreground="White" Background="Red" Canvas.Left="490" Canvas.Top="550" HorizontalAlignment="Left" VerticalAlignment="Center" Click="OnPauseButtonClick" Focusable="False" IsTabStop="False"/>
         -->
