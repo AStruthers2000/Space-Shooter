@@ -38,7 +38,7 @@ namespace SpaceShooter
         int limit = 5;
 
         //scalar multiplier to control how fast enemies spawn. a higher multiplier means spawning faster
-        int enemySpawnRate = 2;
+        double enemySpawnRate = 1.0;
 
         int enemySpeed = 250;
         int playerSpeed = 300;
@@ -155,6 +155,17 @@ namespace SpaceShooter
                                 itemRemover.Add(r1);
 
                                 score++;
+                                if (score > 5)
+                                {
+                                    if (score >= 100)
+                                    {
+                                        enemySpawnRate = 20.0;
+                                    }
+                                    else
+                                    {
+                                        enemySpawnRate = ((score - 5.0) * (score - 5.0)) / 500.0 + 1.0;
+                                    }
+                                }
                                 lbl_ScoreText.Content = "Score: " + score;
                             }
                         }
@@ -264,6 +275,7 @@ namespace SpaceShooter
             }
         }
 
+        //Stopwatch watch = Stopwatch.StartNew();
         private void MakeEnemy()
         {
             enemySpriteCounter = rand.Next(1, 5);
