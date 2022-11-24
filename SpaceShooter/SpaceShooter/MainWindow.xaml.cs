@@ -131,6 +131,7 @@ namespace SpaceShooter
             {
                 if ((string)r.Tag == "bullet")
                 {
+                    
                     Canvas.SetTop(r, Canvas.GetTop(r) - bulletSpeed * deltaTime);
 
                     Rect bulletHitBox = new Rect(Canvas.GetLeft(r), Canvas.GetTop(r), r.Width, r.Height);
@@ -210,6 +211,19 @@ namespace SpaceShooter
                     GameScreen.Children.Remove(r);
                 }
                 itemRemover.Clear();
+            }
+
+            //TODO: change the restart game code to a function, and make it so that the current instance resets, not opening a new process
+            if(damage > 99)
+            {
+                gameTimer.Stop();
+                timeManager.Stop();
+                lbl_DamageText.Content = "Damage: 100";
+                lbl_DamageText.Foreground = Brushes.Red;
+
+                MessageBox.Show("Captain! You have destroyed " + score + " Alien Ships\n Press OK to Play Again", "Shooter Game:");
+                Process.Start(Application.ResourceAssembly.Location);
+                Application.Current.Shutdown();
             }
         }
 
