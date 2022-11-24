@@ -110,9 +110,6 @@ namespace SpaceShooter
 
             enemyCounter -= enemySpawnRate * deltaTime;
 
-            
-            
-
             if (enemyCounter < 0)
             {
                 MakeEnemy();
@@ -155,6 +152,8 @@ namespace SpaceShooter
                                 itemRemover.Add(r1);
 
                                 score++;
+
+                                //TODO: make enemy spawn rate calculations into a function
                                 if (score > 5)
                                 {
                                     if (score >= 100)
@@ -166,6 +165,8 @@ namespace SpaceShooter
                                         enemySpawnRate = ((score - 5.0) * (score - 5.0)) / 500.0 + 1.0;
                                     }
                                 }
+
+                                //TODO: make updating labels into a function
                                 lbl_ScoreText.Content = "Score: " + score;
                             }
                         }
@@ -175,6 +176,8 @@ namespace SpaceShooter
                 if ((string)r.Tag == "enemy")
                 {
                     Canvas.SetTop(r, Canvas.GetTop(r) + enemySpeed * deltaTime);
+
+                    //TODO: make taking damage as well as updating labels into two seperate functions
 
                     //if the enemy is at twice the height of the screen, remove them
                     if (Canvas.GetTop(r) > Application.Current.MainWindow.Height + edgePadding)
@@ -199,6 +202,7 @@ namespace SpaceShooter
                 }
             }
 
+            //TODO: make removing items into a function
             if (itemRemover.Count > 0)
             {
                 foreach (Rectangle r in itemRemover)
@@ -222,6 +226,7 @@ namespace SpaceShooter
 
             if (e.Key == Key.Space)
             {
+                //TODO: potentially turn bullet into a class with custom constructor for custom images, speed, damage, etc.
                 Rectangle newBullet = new Rectangle
                 {
                     Tag = "bullet",
@@ -259,14 +264,19 @@ namespace SpaceShooter
             TogglePause();
         }
 
+        //TODO: fix the pause functionality to work with the new framerate independent code
+        //Tried: I think I just need to pause the timeManager Stopwatch when pausing the game, then restart when unpausing
+        //Note: When the game is paused, the user can still fire a new bullet. the player can't move since that code is in GameLoop(), but bullets still spawn
         private void TogglePause()
         {
             switch (gameTimer.IsEnabled)
             {
                 case true:
+                    timeManager.Stop();
                     gameTimer.Stop();
                     break;
                 case false:
+                    timeManager.Restart();
                     gameTimer.Start();
                     break;
                 default:
@@ -280,6 +290,7 @@ namespace SpaceShooter
         {
             enemySpriteCounter = rand.Next(1, 5);
 
+            //TODO: turn enemy into a class with custom constructor for different enemy types, health, etc. 
             Rectangle newEnemy = new Rectangle
             {
                 Tag = "enemy",
